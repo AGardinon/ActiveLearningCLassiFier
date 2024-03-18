@@ -9,5 +9,5 @@ setup(
     author='Andrea Gardin',
     author_email='',
     description='Active classifier tool for supervised learing problems.',
-    install_requires=['numpy', 'pandas', 'scikit-learn']
+    install_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib']
 )
