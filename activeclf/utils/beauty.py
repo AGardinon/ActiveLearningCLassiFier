@@ -33,8 +33,8 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
 
     # Build the feature space PDF and Entropy
-    _Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-    Z = MinMaxScaler().fit_transform(X=_Z)
+    Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
+    # Z = MinMaxScaler().fit_transform(X=_Z)
     H = scipy.stats.entropy(pk=Z, axis=1)
     Z = Z.reshape((xx.shape[0], xx.shape[1], -1))
 
@@ -83,7 +83,7 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     ax[n_classes+1].scatter(X0[new_idxs], X1[new_idxs], c='0.', marker='+', s=50, zorder=4)
     surf = ax[n_classes+1].imshow(H.reshape(xx.shape), 
                            extent=(x_min, x_max, y_min, y_max),
-                           cmap='coolwarm', origin="lower", aspect='auto', alpha=1.)
+                           cmap='plasma', origin="lower", aspect='auto', alpha=1.)
     cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.1f')
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
                             levels=3, colors='0.', norm='linear', zorder=4)
@@ -158,7 +158,7 @@ def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray],
     ax[n_classes+1].scatter(X0, X1, c='0.', marker='.', s=50, zorder=4)
     surf = ax[n_classes+1].imshow(H.reshape(xx.shape), 
                            extent=(x_min, x_max, y_min, y_max),
-                           cmap='coolwarm', origin="lower", aspect='auto', alpha=1.)
+                           cmap='plasma', origin="lower", aspect='auto', alpha=1.)
     cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.1f')
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
                             levels=3, colors='0.', norm='linear', zorder=4)

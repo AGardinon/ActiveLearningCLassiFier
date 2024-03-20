@@ -1,5 +1,5 @@
 # -------------------------------------------------- #
-# Misc utilities
+# Misc / Utilities
 # for the Active Learning Classifier
 #
 #
@@ -8,7 +8,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import Tuple, Union
+from typing import *
 
 # --- SPACE BUILDER ---#
 
@@ -48,4 +48,3 @@ def make_meshgrid(x: np.ndarray, y: np.ndarray, delta: float =.2, incr='20%') ->
     return xx, yy
 
 # --- ///////////// ---#
-

@@ -20,29 +20,6 @@ from acquisition import pointSampler
 #         self.iteration = 0
 
 
-# def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray], 
-#                           idxs: list, 
-#                           new_batch: int, 
-#                           clfModel, 
-#                           acquisitionFunc) -> list[int]:
-    
-#     # Extract the frature space into variables (X) and taget (y)
-#     X, y = feature_space
-
-#     # compute the unkown idx
-#     # -> the pool from where the acquisition is made
-#     unknown_idxs = [i for i in range(len(X)) if i not in idxs]
-
-#     # fit the clf model to the existing feature space
-#     # -> estimation of the pdf underlying the data
-#     clfModel.fit(X=X, y=y, idxs=idxs)
-#     pdf = clfModel.predict_proba(X=X.iloc[unknown_idxs])
-
-#     # acquire the new data points based on the acquisition strategy
-#     screen_points = acquisitionFunc.acquire(pdf=pdf, n=new_batch)
-
-#     return screen_points
-
 def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray], 
                           idxs: list[int], 
                           new_batch: int, 

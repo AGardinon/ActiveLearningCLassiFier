@@ -21,7 +21,7 @@ class DataLoader:
         print("Loading DataFrame ...\n")
         self.load_data(**self.params)
 
-    # def load_data(self, target_feature: str, used_features: list[str]='all'):
+
     def load_data(self, target_feature: str, used_features: list[str]='all'):
 
         # Get target feature
