@@ -8,7 +8,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import *
+from typing import Tuple, Union
 
 # --- SPACE BUILDER ---#
 
