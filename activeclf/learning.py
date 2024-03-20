@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from typing import Tuple, Union
 
-from acquisition import pointSampler
+from .acquisition import pointSampler
 
 # class ActiveLearnigClf:
 #     def __init__(self) -> None:

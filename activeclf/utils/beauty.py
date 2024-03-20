@@ -13,8 +13,10 @@ from sklearn.preprocessing import MinMaxScaler
 
 from typing import Tuple
 
-from misc import get_space_lims, make_meshgrid
+from .misc import get_space_lims, make_meshgrid
 
+
+# --- PLOT FUNCTIONS ---#
 
 def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray], 
                                clfModel, 
@@ -170,6 +172,10 @@ def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray],
 
     fig.tight_layout()
 
+# --- ////////////// ---#
+
+
+# --- PLOT UTILITIES ---#
 
 def get_alphas(Z: np.ndarray, scale: bool=False) -> np.ndarray:
     alphas = (Z.ravel() - Z.ravel().min()) / (Z.ravel().max() - Z.ravel().min())
@@ -225,3 +231,5 @@ def remove_frame(axes) -> None:
     axes.xaxis.set_ticks_position('none')
     axes.yaxis.set_ticks_position('none')
     pass
+
+# --- ////////////// ---#
