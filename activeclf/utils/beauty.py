@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
-from typing import Tuple
+from typing import Tuple, Callable
 
 from .misc import get_space_lims, make_meshgrid
 
@@ -19,7 +19,7 @@ from .misc import get_space_lims, make_meshgrid
 # --- PLOT FUNCTIONS ---#
 
 def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray], 
-                               clfModel, 
+                               clfModel: Callable, 
                                idxs: list[int], 
                                new_idxs: list[int]) -> None:
     
@@ -43,19 +43,20 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     # plots
     fig, ax = get_axes(n_classes+2,3)
 
+    # class-wise PDFs
     for i in range(n_classes):
         # plot the initial data
         alphas = get_alphas(Z=Z[:,:,i])
-        ax[i].scatter(X0[new_idxs], X1[new_idxs], c='0.', marker='+', s=50, zorder=4)
+        ax[i].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
         surf = ax[i].imshow(Z[:,:,i], 
-                    cmap=CMAPS[i], 
-                    extent=(x_min, x_max, y_min, y_max), 
-                    vmin=.0, vmax=1.,
-                    origin="lower", 
-                    aspect='auto', 
-                    alpha=alphas.reshape(xx.shape))
+                            cmap=CMAPS[i], 
+                            extent=(x_min, x_max, y_min, y_max), 
+                            vmin=.0, vmax=1.,
+                            origin="lower", 
+                            aspect='auto', 
+                            alpha=alphas.reshape(xx.shape))
         cbar = fig.colorbar(surf,ax=ax[i], format='%1.1f')
-        cs = ax[i].contour(xx, yy, Z[:,:,i]-.50001, 
+        cs = ax[i].contour(xx, yy, Z[:,:,i]-.501, 
                            colors='0.', levels=4, norm='linear', zorder=3)
         ax[i].set_title(f'pdf class-{i}')
         ax[i].set_xlabel('f0')
@@ -63,8 +64,8 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
         ax[i].set_xticks(())
         ax[i].set_yticks(())
 
-
-    ax[n_classes].scatter(X0[new_idxs], X1[new_idxs], c='0.', marker='+', s=50, zorder=4)
+    # class prediction plot
+    ax[n_classes].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
     ax[n_classes].scatter(X0[idxs], X1[idxs], c=y[idxs], edgecolor='0.', s=50, zorder=4)
     for j in range(n_classes):
         alphas = get_alphas(Z=Z[:,:,j], scale=True)
@@ -81,12 +82,12 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     ax[n_classes].set_xticks(())
     ax[n_classes].set_yticks(())
 
-
-    ax[n_classes+1].scatter(X0[new_idxs], X1[new_idxs], c='0.', marker='+', s=50, zorder=4)
+    # entropy plot
+    ax[n_classes+1].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
     surf = ax[n_classes+1].imshow(H.reshape(xx.shape), 
                            extent=(x_min, x_max, y_min, y_max),
                            cmap='plasma', origin="lower", aspect='auto', alpha=1.)
-    cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.1f')
+    cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.2f')
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
                             levels=3, colors='0.', norm='linear', zorder=4)
     ax[n_classes+1].set_title(f'entropy')
@@ -99,7 +100,7 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
 
 
 def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray], 
-                        clfModel) -> None:
+                        clfModel: Callable) -> None:
     
     # Buildi the complete feature space (visualization)
     X0, X1, y = feature_space
@@ -161,7 +162,7 @@ def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray],
     surf = ax[n_classes+1].imshow(H.reshape(xx.shape), 
                            extent=(x_min, x_max, y_min, y_max),
                            cmap='plasma', origin="lower", aspect='auto', alpha=1.)
-    cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.1f')
+    cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.2f')
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
                             levels=3, colors='0.', norm='linear', zorder=4)
     ax[n_classes+1].set_title(f'entropy')
@@ -169,6 +170,49 @@ def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray],
     ax[n_classes+1].set_ylabel('f1')
     ax[n_classes+1].set_xticks(())
     ax[n_classes+1].set_yticks(())
+
+    fig.tight_layout()
+
+
+def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray], 
+                          Z: np.ndarray, 
+                          new_idxs: list[int],
+                          minmaxScaling: bool=True) -> None:
+    
+    CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
+    
+    X0, X1 = X
+
+    # compute Prob distribution
+    if minmaxScaling:
+        Z = MinMaxScaler().fit_transform(X=Z)
+
+    # compute Entropy values
+    H = scipy.stats.entropy(pk=Z, axis=1)
+
+    n_classes = Z.shape[1]
+    fig, ax = get_axes(2, 2)
+
+    for i in range(n_classes):
+        sizes = (Z[:,i] * (H  - max(H)) * -1) + 0.005
+        alphas = get_alphas(Z=Z[:,i], scale=True)
+        ax[0].scatter(X0[new_idxs], X1[new_idxs], 
+                      edgecolor='0.', facecolor='none', 
+                      s=50, zorder=2)
+
+        ax[0].scatter(X0, X1, c=Z[:,i], cmap=CMAPS[i], 
+                      alpha=alphas, s=sizes*70, 
+                      marker='s', zorder=1)
+
+    ax[1].scatter(X0[new_idxs], X1[new_idxs], 
+                  edgecolor='0.', facecolor='none', s=50, zorder=2)
+    ax[1].scatter(X0, X1, c=H, cmap='plasma', s=H*70, marker='s', zorder=1)
+
+    for i in range(2):
+        ax[i].set_xlabel('f0')
+        ax[i].set_ylabel('f1')
+        ax[i].set_xticks(())
+        ax[i].set_yticks(())
 
     fig.tight_layout()
 
