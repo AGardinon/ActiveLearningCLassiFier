@@ -12,7 +12,7 @@ import scipy
 import numpy as np
 
 class DecisionFunction:
-    def __init__(self, mode: str, seed: int=73) -> None:
+    def __init__(self, mode: str, seed: int=73, decimals: int=2) -> None:
         
         self.decision_modes = {
             'exploitation' : exploitation,
@@ -25,6 +25,7 @@ class DecisionFunction:
         
         self.mode = mode
         self.rng = np.random.default_rng(seed=seed)
+        self.decimals = decimals
 
     def acquire(self, **kwrgs):
         if self.mode == 'random':
@@ -35,7 +36,7 @@ class DecisionFunction:
 
     def _acquire(self, pdf: np.ndarray, n: int=1) -> list[int]:
 
-        return self.decision_modes[self.mode](pdf=pdf, n=n)
+        return self.decision_modes[self.mode](pdf=pdf, n=n, decimals=self.decimals)
 
 
     def _random_pick(self, idxs: list[int], n: int=1) -> list[int]:
@@ -45,9 +46,9 @@ class DecisionFunction:
     
 
 
-def exploitation(pdf: np.ndarray, n: int=1) -> list[int]:
+def exploitation(pdf: np.ndarray, n: int=1, decimals: int=2) -> list[int]:
 
-    entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=4)
+    entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=decimals)
     new_points = np.argsort(entropy)[:n]
     new_idxs = np.concatenate([[i for i,val in enumerate(entropy) if val == entropy[h]] 
                                for h in new_points])
@@ -55,9 +56,9 @@ def exploitation(pdf: np.ndarray, n: int=1) -> list[int]:
     return list(set(new_idxs))
 
 
-def exploration(pdf: np.ndarray, n: int=1) -> list[int]:
+def exploration(pdf: np.ndarray, n: int=1, decimals: int=2) -> list[int]:
     
-    entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=4)
+    entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=decimals)
     new_points = np.argsort(entropy)[::-1][:n]
     new_idxs = np.concatenate([[i for i,val in enumerate(entropy) if val == entropy[h]] 
                                for h in new_points])
