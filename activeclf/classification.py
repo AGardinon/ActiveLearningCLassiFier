@@ -8,9 +8,13 @@
 
 import numpy as np
 import pandas as pd
+
+from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
-from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 
 
 class ClassifierModel:
@@ -19,10 +23,15 @@ class ClassifierModel:
         self.classification_models = {
             'SVC' : SVC,
             'GaussianProcessClassifier' : GaussianProcessClassifier,
+            'NaiveBayes' : GaussianNB,
+            'RandomForest' : RandomForestClassifier,
+            'AdaBoost' : AdaBoostClassifier,
+            'MLPC' : MLPClassifier,
+            'GBoost' : GradientBoostingClassifier
         }
 
         assert model in self.classification_models.keys(), f"Specified 'method' not available. " \
-                                                           f"Select from: {self.acquisition_method.keys()}"
+                                                           f"Select from: {list(self.classification_models.keys())}"
         
         self.model = model
         self.params = kwds
