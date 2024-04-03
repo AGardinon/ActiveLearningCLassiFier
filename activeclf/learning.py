@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from typing import Tuple, Union, Callable
 
-from acquisition import pointSampler
+from activeclf.acquisition import pointSampler
 
 # --- Single cycle funcion
 
