@@ -31,7 +31,10 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     xx, yy = make_meshgrid(x=X0, y=X1, incr=incr, delta=.1)
 
     # Classes specification and color grading
-    n_classes = len(np.unique(y[idxs]))
+    try:
+        n_classes = len(np.unique(y[idxs]))
+    except:
+        n_classes = len(np.unique(y.iloc[idxs]))
     CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
 
     # Build the feature space PDF and Entropy
@@ -213,6 +216,40 @@ def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray],
         ax[i].set_ylabel('f1')
         ax[i].set_xticks(())
         ax[i].set_yticks(())
+
+    fig.tight_layout()
+
+
+def plot_entropy3D(X, Z, decimals, scaling=True):
+    fig = plt.figure(figsize=(4,4), dpi=200)
+    ax = fig.add_subplot(projection='3d')
+
+    X0,X1 = X
+    if scaling:
+        Z = MinMaxScaler().fit_transform(X=Z)
+    H = np.around(scipy.stats.entropy(pk=Z, axis=1), decimals=decimals)
+
+    ax.scatter(
+        X0, X1, H,
+        c=H,
+        cmap='plasma',
+        s=H*70,
+        alpha=1.,
+        edgecolor='0.',
+    )
+
+    ax.set_xlabel('f0')
+    ax.set_ylabel('f1')
+    ax.set_zlabel('H')
+    ax.set_xticks(())
+    ax.set_yticks(())
+
+
+    ax.set_proj_type('ortho')
+
+    ax.azim = -145
+    ax.dist = 10
+    ax.elev = 7
 
     fig.tight_layout()
 
