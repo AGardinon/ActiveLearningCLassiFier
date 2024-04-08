@@ -35,12 +35,14 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
         n_classes = len(np.unique(y[idxs]))
     except:
         n_classes = len(np.unique(y.iloc[idxs]))
-    CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
+
+    print('classes:', n_classes)
+    CMAPS = ['Reds', 'Blues', 'Greens', 'Purples', 'Oranges']
 
     # Build the feature space PDF and Entropy
     Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-    # Z = MinMaxScaler().fit_transform(X=_Z)
-    H = scipy.stats.entropy(pk=Z, axis=1)
+    Z = MinMaxScaler().fit_transform(X=Z)
+    H = np.round(scipy.stats.entropy(pk=Z, axis=1),2)
     Z = Z.reshape((xx.shape[0], xx.shape[1], -1))
 
     # plots
@@ -182,7 +184,7 @@ def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray],
                           new_idxs: list[int],
                           minmaxScaling: bool=True) -> None:
     
-    CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
+    CMAPS = ['Reds', 'Blues', 'Greens', 'Purples', 'Oranges']
     
     X0, X1 = X
 
@@ -249,7 +251,7 @@ def plot_entropy3D(X, Z, decimals, scaling=True):
 
     ax.azim = -145
     ax.dist = 10
-    ax.elev = 7
+    ax.elev = 12
 
     fig.tight_layout()
 
