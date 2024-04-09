@@ -116,7 +116,7 @@ def plot_classification(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray],
 
     # Classes specification and color grading
     n_classes = len(np.unique(y))
-    CMAPS = ['Reds', 'Blues', 'Greens', 'Oranges', 'Purples']
+    CMAPS = ['Reds', 'Blues', 'Greens', 'Purples', 'Oranges']
 
     # Build the feature space PDF and Entropy
     Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
@@ -222,7 +222,7 @@ def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray],
     fig.tight_layout()
 
 
-def plot_entropy3D(X, Z, decimals, scaling=True):
+def plot_entropy3D(X, Z, decimals, scaling=True, orientation=(-145,12)):
     fig = plt.figure(figsize=(4,4), dpi=200)
     ax = fig.add_subplot(projection='3d')
 
@@ -249,9 +249,8 @@ def plot_entropy3D(X, Z, decimals, scaling=True):
 
     ax.set_proj_type('ortho')
 
-    ax.azim = -145
+    ax.azim, ax.elev = orientation
     ax.dist = 10
-    ax.elev = 12
 
     fig.tight_layout()
 
