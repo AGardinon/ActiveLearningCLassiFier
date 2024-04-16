@@ -23,7 +23,7 @@ class DataLoader:
         try:
             self.df = pd.read_csv(file_path).drop(labels='Unnamed: 0', axis=1)
         except:
-            self.df = pd.read_csv(file_path).drop(labels='Unnamed: 0', axis=1)
+            self.df = pd.read_csv(file_path)
 
         self._constant_columns = get_constant_columns(df=self.df)
         if len(self._constant_columns) > 0:
