@@ -49,10 +49,12 @@ class DataLoader:
         print(f'Feature space: {self.fspace_keys},\nTarget property: {target}')
 
         if scaling:
+            print('Scaling the data (StandarScaler) ...')
             self.scaler = StandardScaler()
             self.X = self.scaler.fit_transform(X=self.X)
             self.X = pd.DataFrame(data=self.X, columns=self.fspace_keys)
         else:
+            print('!!! The data might not be scaled ...')
             pass
 
 
