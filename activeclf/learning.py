@@ -40,9 +40,12 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
 
     # acquire the new data points based on the acquisition strategy
     # -> the pdf fed refers only at the unknown idxs
-    _screen_points = acquisitionFunc.acquire(pdf=pdf[unknown_idxs], n=new_batch)
+    if acquisitionFunc.mode == 'random':
+        screen_points = acquisitionFunc.acquire(idxs=unknown_idxs, n=new_batch)
+    else:
+        _screen_points = acquisitionFunc.acquire(pdf=pdf[unknown_idxs], n=new_batch)
     # -> restore indexes to the POOL dataframe
-    screen_points = [unknown_idxs[sc] for sc in _screen_points]
+        screen_points = [unknown_idxs[sc] for sc in _screen_points]
 
     # -> check for similar points and select only `new_batch` amount
     #    using some rule.
