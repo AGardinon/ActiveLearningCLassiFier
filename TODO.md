@@ -6,4 +6,5 @@
 2. code improvments
 	- active cycle function (for testing purp)
 	- how to cycle in real data scenario
-	-
+	- performace testing code
+	- gridCV search for the best parameters of the classifier (rule of thumbs)
