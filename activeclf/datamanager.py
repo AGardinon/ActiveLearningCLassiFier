@@ -15,8 +15,9 @@ from typing import Union
 
 
 class DataLoader:
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: str, target: str) -> None:
         self._file_path = file_path
+        self.target = target
         self.constant_columns = None
         self.X = None
         self.y = None
@@ -29,6 +30,11 @@ class DataLoader:
             self.df = pd.read_csv(file_path)
 
         self._constant_columns = get_constant_columns(df=self.df)
+        # remove the target columns from the list of columns to remove
+        # just a precaution for cycle0 for real experiments
+        if self.target in self._constant_columns:
+            self._constant_columns.remove(self.target)
+
         if len(self._constant_columns) > 0:
             print(f'Removing constant columns\n{self._constant_columns}\n')
             self.constant_columns = {
@@ -43,9 +49,8 @@ class DataLoader:
         self.df = dataframe_merger(df1=self.df, df2=validated_df, target_col=target)
         pass
 
-    def feature_space(self, target: str, scaling: bool=True):
+    def feature_space(self, scaling: bool=True):
         # target definition
-        self.target = target
         self.y = self.df[self.target]
 
         # creating the feature space
@@ -53,7 +58,7 @@ class DataLoader:
         # feature space labels keys
         self.fspace_keys = [k for k in self.df.columns if k != self.target]
 
-        print(f'Feature space: {self.fspace_keys},\nTarget property: {target}')
+        print(f'Feature space: {self.fspace_keys},\nTarget property: {self.target}')
 
         if scaling:
             print('Scaling the data (StandarScaler) ...')
