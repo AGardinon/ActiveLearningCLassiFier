@@ -10,18 +10,18 @@ import random
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from typing import Tuple, Union, Callable
+from typing import List, Tuple, Union, Callable
 
 from activeclf.acquisition import pointSampler
 
 # --- Single cycle funcion
 
 def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray], 
-                          idxs: list[int], 
+                          idxs: List[int], 
                           new_batch: int, 
                           clfModel: Callable, 
                           acquisitionFunc: Callable,
-                          screeningSelection: str='FPS') -> list[int]:
+                          screeningSelection: str='FPS') -> List[int]:
     
     # Extract the frature space into variables (X) and taget (y)
     X, y = feature_space
@@ -73,7 +73,7 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     return new_points
 
 
-def get_starting_batch(data: np.ndarray, init_batch: Union[int, str]) -> list[int]:
+def get_starting_batch(data: np.ndarray, init_batch: Union[int, str]) -> List[int]:
     
     if init_batch == 'all':
         return range(0, len(data))

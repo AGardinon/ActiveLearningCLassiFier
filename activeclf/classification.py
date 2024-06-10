@@ -8,6 +8,7 @@
 
 import numpy as np
 import pandas as pd
+from typing import List
 
 from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
@@ -38,7 +39,7 @@ class ClassifierModel:
         self.clf = self.classification_models[model](**kwds)
 
 
-    def fit(self, X: pd.DataFrame, y: pd.DataFrame, idxs: list[int]) -> None:
+    def fit(self, X: pd.DataFrame, y: pd.DataFrame, idxs: List[int]) -> None:
 
         if idxs:
             self.clf.fit(X.iloc[idxs], y.iloc[idxs])

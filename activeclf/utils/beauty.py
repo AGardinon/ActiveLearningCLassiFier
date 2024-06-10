@@ -24,8 +24,8 @@ from activeclf.acquisition import sampling_fps
 
 def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.ndarray], 
                                clfModel: Callable, 
-                               idxs: list[int], 
-                               new_idxs: list[int]) -> None:
+                               idxs: List[int], 
+                               new_idxs: List[int]) -> None:
     
     # Buildi the complete feature space (visualization)
     X0, X1, y = feature_space
@@ -200,7 +200,7 @@ def plot_classification2D(data: np.ndarray,
 
 def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray], 
                           Z: np.ndarray, 
-                          new_idxs: list[int],
+                          new_idxs: List[int],
                           minmaxScaling: bool=True) -> None:
     
     CMAPS = ['Reds', 'Blues', 'Greens', 'Purples', 'Oranges']
@@ -388,7 +388,7 @@ def plot_entropy_selection(X, Z, num_points, levels=5, decimals=2, scaling=True)
     pass
 
 
-def get_subspace(indexes: list[list[int]], points: int) -> list[list[int]]:
+def get_subspace(indexes: List[List[int]], points: int) -> List[List[int]]:
     sub_space = list()
     
     while True:

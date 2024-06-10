@@ -11,7 +11,7 @@ import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
 
-from typing import Union
+from typing import List, Union
 
 
 class DataLoader:
@@ -71,7 +71,7 @@ class DataLoader:
 
 # -------------------------------------------------- #
 
-def get_constant_columns(df: pd.DataFrame) -> list[str]:
+def get_constant_columns(df: pd.DataFrame) -> List[str]:
     const_val = list()
 
     for k, v in df.items():
@@ -82,7 +82,7 @@ def get_constant_columns(df: pd.DataFrame) -> list[str]:
 
 
 def remove_columns(df: pd.DataFrame, 
-                   key: Union[list[str], str]) -> pd.DataFrame:
+                   key: Union[List[str], str]) -> pd.DataFrame:
     
     if isinstance(key, list):
         to_drop = sum([[s for s in df.columns if k in s] for k in key], [])

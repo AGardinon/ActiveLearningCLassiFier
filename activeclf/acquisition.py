@@ -10,6 +10,8 @@
 
 import scipy
 import numpy as np
+from typing import List
+
 
 class DecisionFunction:
     def __init__(self, mode: str, seed: int=73, decimals: int=2) -> None:
@@ -34,19 +36,19 @@ class DecisionFunction:
             return self._acquire(**kwrgs)
         
 
-    def _acquire(self, pdf: np.ndarray, n: int=1) -> list[int]:
+    def _acquire(self, pdf: np.ndarray, n: int=1) -> List[int]:
 
         return self.decision_modes[self.mode](pdf=pdf, n=n, decimals=self.decimals)
 
 
-    def _random_pick(self, idxs: list[int], n: int=1) -> list[int]:
+    def _random_pick(self, idxs: List[int], n: int=1) -> List[int]:
 
         rng_idx_pick = self.rng.integers(0, len(idxs), n)
         return [idxs[r] for r in rng_idx_pick]
     
 
 
-def exploitation(pdf: np.ndarray, n: int=1, decimals: int=2) -> list[int]:
+def exploitation(pdf: np.ndarray, n: int=1, decimals: int=2) -> List[int]:
 
     entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=decimals)
     new_points = np.argsort(entropy)[:n]
@@ -56,7 +58,7 @@ def exploitation(pdf: np.ndarray, n: int=1, decimals: int=2) -> list[int]:
     return list(set(new_idxs))
 
 
-def exploration(pdf: np.ndarray, n: int=1, decimals: int=2) -> list[int]:
+def exploration(pdf: np.ndarray, n: int=1, decimals: int=2) -> List[int]:
     
     entropy = np.around(scipy.stats.entropy(pdf, axis=1), decimals=decimals)
     new_points = np.argsort(entropy)[::-1][:n]
@@ -88,12 +90,12 @@ class pointSampler:
         
         self.mode = mode
 
-    def sample(self, X: Union[list[int], np.ndarray], n: int, **kwrgs) -> list[int]:
+    def sample(self, X: Union[List[int], np.ndarray], n: int, **kwrgs) -> List[int]:
         
         return self.sampling_modes[self.mode](X=X, n=n, **kwrgs)
 
     
-def sampling_rand(X: list[int], n: int, seed: int=73) -> list[int]:
+def sampling_rand(X: List[int], n: int, seed: int=73) -> List[int]:
 
     rng_idx_pick = random.sample(range(0, len(X)), n)
     
@@ -101,7 +103,7 @@ def sampling_rand(X: list[int], n: int, seed: int=73) -> list[int]:
 
 
 def sampling_fps(X: np.ndarray, n: int, start_idx: int=None, 
-                return_distD: bool=False) -> Union[list[int], np.ndarray]:
+                return_distD: bool=False) -> Union[List[int], np.ndarray]:
 
     if isinstance(X, pd.DataFrame):
         X = np.array(X)
