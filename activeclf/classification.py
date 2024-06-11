@@ -12,11 +12,11 @@ from typing import List
 
 from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
-
+from sklearn.preprocessing import MinMaxScaler
 
 class ClassifierModel:
     def __init__(self, model: str, **kwds) -> None:
@@ -42,10 +42,16 @@ class ClassifierModel:
     def fit(self, X: pd.DataFrame, y: pd.DataFrame, idxs: List[int]) -> None:
 
         if idxs:
-            self.clf.fit(X.iloc[idxs], y.iloc[idxs])
+            try:
+                self.clf.fit(X.iloc[idxs], y.iloc[idxs])
+            except:
+                print('Warning, only one class!!')
+                print('A simple Gaussian Model will be used to fit '\
+                      f'the data instead of the selected classifier ({self.model}).')
+                self.clf = myGaussianModel(n_dim=X.shape[1])
+                self.clf.fit(mean=X.iloc[idxs], cov='eye')
         else:
             self.clf.fit(X, y)
-
         pass
     
 
@@ -54,4 +60,44 @@ class ClassifierModel:
         try:
             return self.clf.predict_proba(X=X)
         except:
-            raise ValueError('Error')
+            raise ValueError('Error, the selected classifier does \
+                             not have a .predict_proba() attribute.')
+        
+
+class myGaussianModel:
+    def __init__(self, n_dim: int) -> None:
+        self.n_dim = n_dim
+        self._is_fit = False
+        self.Z = None
+        self.mean = None
+        self.cov = None
+        pass
+
+
+    def fit(self, mean: List[np.ndarray], cov: str='eye') -> None:
+        self.mean = mean
+        self.cov = np.eye(N=self.n_dim)
+        self._is_fit = True
+        pass
+
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        densities_list = list()
+        for centre in self.mean:
+            densities_list.append(
+                [multivariate_gaussian(x=p, mean=centre, cov=self.cov) for p in X]
+            )
+        self._Z_unscaled = np.array([sum(z) for z in zip(*densities_list)])
+        self.Z = MinMaxScaler(feature_range=(0,1)).fit_transform(self._Z_unscaled.reshape(-1,1))
+        return self.Z
+
+
+def multivariate_gaussian(x: np.ndarray, 
+                          mean: np.ndarray, 
+                          cov: np.ndarray) -> float:
+    # dimensions are inferred from the
+    # shape of the mean value
+    k = mean.shape[0]
+    x_m = x - mean
+    return np.exp(-0.5 * np.dot(x_m, np.linalg.solve(cov, x_m))) / \
+           np.sqrt((2 * np.pi) ** k * np.linalg.det(cov))
