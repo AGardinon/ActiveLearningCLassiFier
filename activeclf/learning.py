@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from typing import List, Tuple, Union, Callable
-
-from activeclf.acquisition import pointSampler
+from .acquisition import pointSampler
+from .classification import myGaussianModel
 
 # --- Single cycle funcion
 
@@ -36,16 +36,30 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     _pdf = clfModel.predict_proba(X=X)
     # -> minmax scaling for easier value picking
     #    less noisy probability space (and entropy)
-    pdf = MinMaxScaler().fit_transform(X=_pdf)
+    try:
+        pdf = MinMaxScaler().fit_transform(X=_pdf)
+    except:
+        pdf = MinMaxScaler().fit_transform(X=_pdf.reshape(-1,1))
 
-    # acquire the new data points based on the acquisition strategy
-    # -> the pdf fed refers only at the unknown idxs
-    if acquisitionFunc.mode == 'random':
-        screen_points = acquisitionFunc.acquire(idxs=unknown_idxs, n=new_batch)
+    # check if we are using the custom made Gaussian model
+    if clfModel.clf.__class__.__name__ == myGaussianModel.__name__:
+        # we will treat the gaussian space as the inverted probability space
+        # since we have only 1 class it will be used to infer the new points
+        dummy_entropy = np.around((1 - pdf), decimals=2)
+        # appling an exploration strategy to sample new points
+        _screen_points = np.argsort(dummy_entropy)[::-1][:new_batch]
+        screen_points = np.concatenate([[i for i,val in enumerate(dummy_entropy) if val == dummy_entropy[h]] 
+                                        for h in _screen_points])
+        
     else:
-        _screen_points = acquisitionFunc.acquire(pdf=pdf[unknown_idxs], n=new_batch)
-    # -> restore indexes to the POOL dataframe
-        screen_points = [unknown_idxs[sc] for sc in _screen_points]
+        # acquire the new data points based on the acquisition strategy
+        # -> the pdf fed refers only at the unknown idxs
+        if acquisitionFunc.mode == 'random':
+            screen_points = acquisitionFunc.acquire(idxs=unknown_idxs, n=new_batch)
+        else:
+            _screen_points = acquisitionFunc.acquire(pdf=pdf[unknown_idxs], n=new_batch)
+        # -> restore indexes to the POOL dataframe
+            screen_points = [unknown_idxs[sc] for sc in _screen_points]
 
     # -> check for similar points and select only `new_batch` amount
     #    using some rule.

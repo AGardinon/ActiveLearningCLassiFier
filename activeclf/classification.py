@@ -73,22 +73,29 @@ class myGaussianModel:
         self.cov = None
         pass
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
     def fit(self, mean: List[np.ndarray], cov: str='eye') -> None:
-        self.mean = mean
+        if isinstance(mean, pd.DataFrame):
+            self.mean = mean.to_numpy()
+        else:
+            self.mean = mean
         self.cov = np.eye(N=self.n_dim)
         self._is_fit = True
         pass
 
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
         densities_list = list()
         for centre in self.mean:
             densities_list.append(
                 [multivariate_gaussian(x=p, mean=centre, cov=self.cov) for p in X]
             )
-        self._Z_unscaled = np.array([sum(z) for z in zip(*densities_list)])
-        self.Z = MinMaxScaler(feature_range=(0,1)).fit_transform(self._Z_unscaled.reshape(-1,1))
+        self.Z = np.array([sum(z) for z in zip(*densities_list)])
         return self.Z
 
 
