@@ -30,7 +30,6 @@ def main(argument):
     # - first batch, sampled random
     idxs = get_starting_batch(data=data.X, 
                               init_batch=exp_config['startingPoints'])
-    print(idxs, data.y.iloc[idxs])
 
     # - init the functions to run the experiment
     if exp_config['kParam1'] and exp_config['kParam2']:
@@ -46,10 +45,10 @@ def main(argument):
 
         idxs = idxs + new_idxs
 
-        print(f'\n\n# --- Cycle {cycle}')
+        print(f'\n\n# ------------\n# --- Cycle {cycle}')
         print(f'ALpoints: {len(idxs)} / {len(data.X)}')
 
-        print(f'Set up the Classifier and Acquisition function ..\n')
+        print(f'Set up the Classifier and Acquisition function ..')
         classifier_func = alclf.ClassifierModel(model=exp_config['clfModel'],
                                                 kernel=kernel_function,
                                                 random_state=None)
@@ -66,9 +65,6 @@ def main(argument):
             acquisitionFunc=acquisition_func,
             screeningSelection=exp_config['screeningSelection']
             )
-        
-        print(new_idxs, classifier_func.clf)
-        print(data.X.shape)
 
     print('\n# END')
 
