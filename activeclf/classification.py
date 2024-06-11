@@ -16,7 +16,7 @@ from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import MinMaxScaler
+
 
 class ClassifierModel:
     def __init__(self, model: str, **kwds) -> None:
@@ -48,7 +48,7 @@ class ClassifierModel:
                 print('Warning, only one class!!')
                 print('A simple Gaussian Model will be used to fit '\
                       f'the data instead of the selected classifier ({self.model}).')
-                self.clf = myGaussianModel(n_dim=X.shape[1])
+                self.clf = SingleClassGaussianModel(n_dim=X.shape[1])
                 self.clf.fit(mean=X.iloc[idxs], cov='eye')
         else:
             self.clf.fit(X, y)
@@ -64,7 +64,7 @@ class ClassifierModel:
                              not have a .predict_proba() attribute.')
         
 
-class myGaussianModel:
+class SingleClassGaussianModel:
     def __init__(self, n_dim: int) -> None:
         self.n_dim = n_dim
         self._is_fit = False
@@ -76,16 +76,22 @@ class myGaussianModel:
     def __repr__(self):
         return self.__class__.__name__
 
-
     def fit(self, mean: List[np.ndarray], cov: str='eye') -> None:
         if isinstance(mean, pd.DataFrame):
             self.mean = mean.to_numpy()
         else:
             self.mean = mean
-        self.cov = np.eye(N=self.n_dim)
+        if cov == 'eye':
+            self.cov = np.eye(N=self.n_dim)
+        else:
+            self.cov = cov
         self._is_fit = True
         pass
 
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        return np.ones(shape=(len(X),),dtype=int)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         if isinstance(X, pd.DataFrame):

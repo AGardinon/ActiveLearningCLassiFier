@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from typing import List, Tuple, Union, Callable
 from .acquisition import pointSampler
-from .classification import myGaussianModel
+from .classification import SingleClassGaussianModel
 
 # --- Single cycle funcion
 
@@ -21,7 +21,7 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
                           new_batch: int, 
                           clfModel: Callable, 
                           acquisitionFunc: Callable,
-                          screeningSelection: str='FPS') -> List[int]:
+                          screeningSelection: str='FPS') -> Union[List[int], np.ndarray]:
     
     # Extract the frature space into variables (X) and taget (y)
     X, y = feature_space
@@ -42,7 +42,7 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
         pdf = MinMaxScaler().fit_transform(X=_pdf.reshape(-1,1))
 
     # check if we are using the custom made Gaussian model
-    if clfModel.clf.__class__.__name__ == myGaussianModel.__name__:
+    if clfModel.clf.__class__.__name__ == SingleClassGaussianModel.__name__:
         # we will treat the gaussian space as the inverted probability space
         # since we have only 1 class it will be used to infer the new points
         dummy_entropy = np.around((1 - pdf), decimals=2)
@@ -84,7 +84,7 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     else:
         new_points = screen_points
 
-    return new_points
+    return new_points, pdf
 
 
 def get_starting_batch(data: np.ndarray, init_batch: Union[int, str]) -> List[int]:
