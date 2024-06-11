@@ -1,7 +1,7 @@
 dataset: '../../datasets/3d_ani_space/aniSpace3D_ward_phases3.csv'
 targetVariable: 'target'
 
-startingPoints: 2
+startingPoints: 1
 Ncycles: 2
 newBatch: 3
 
