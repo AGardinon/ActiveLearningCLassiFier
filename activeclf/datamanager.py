@@ -44,9 +44,12 @@ class DataLoader:
         elif len(self._constant_columns) == 0:
             pass
 
-    def merge_validated_df(self, validated_df: pd.DataFrame, target: str):
+    def merge_validated_df(self, validated_df: pd.DataFrame, target: str, overwrite: bool=False):
         assert self.scaler is None, f'Warning, you should merge before creating the `feature_space`!'
         self.df = dataframe_merger(df1=self.df, df2=validated_df, target_col=target)
+        if overwrite:
+            self.df.to_csv(self._file_path, index=False)
+            print(f'Dataset updated, ow to {self._file_path}')
         pass
 
     def feature_space(self, scaling: bool=True):
