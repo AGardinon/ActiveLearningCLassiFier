@@ -46,11 +46,12 @@ class DataLoader:
 
     def merge_validated_df(self, validated_df: pd.DataFrame, target: str, overwrite: bool=False):
         assert self.scaler is None, f'Warning, you should merge before creating the `feature_space`!'
-        self.df = dataframe_merger(df1=self.df, df2=validated_df, target_col=target)
+        self.df = dataframe_merger(df1=self.df, 
+                                   df2_to_merge=validated_df, 
+                                   target_col=target)
         if overwrite:
             self.df.to_csv(self._file_path, index=False)
             print(f'Dataset updated, ow to {self._file_path}')
-        pass
 
     def feature_space(self, scaling: bool=True):
         # target definition
@@ -70,7 +71,6 @@ class DataLoader:
             self.X = pd.DataFrame(data=self.X, columns=self.fspace_keys)
         else:
             print('!!! The data might not be scaled ...')
-            pass
 
 # -------------------------------------------------- #
 
@@ -102,22 +102,45 @@ def remove_columns(df: pd.DataFrame,
     return df
 
 
+# def dataframe_merger(df1: pd.DataFrame, 
+#                      df2: pd.DataFrame, 
+#                      target_col: str='Phase', 
+#                      keep: str='first') -> pd.DataFrame:
+#     # stack the two df
+#     merged_df = pd.concat([df1, df2]).drop_duplicates(keep=keep).reset_index(drop=True)
+
+#     # remove the target columns, as it pollutes the duplicates
+#     target_column_df = merged_df[target_col]
+#     merged_df = merged_df.drop(columns=target_col, axis=1)
+
+#     # list of True: dup, False: uniq
+#     duplicates_list = merged_df.duplicated(keep='first')
+#     duplicates_indxs_list = np.arange(len(target_column_df))[duplicates_list]
+
+#     # add the target column back
+#     merged_df[target_col] = target_column_df
+
+#     return merged_df.drop(index=duplicates_indxs_list).reset_index(drop=True)
+
 def dataframe_merger(df1: pd.DataFrame, 
-                     df2: pd.DataFrame, 
-                     target_col: str='Phase', 
-                     keep: str='first') -> pd.DataFrame:
-    # stack the two df
-    merged_df = pd.concat([df1, df2]).drop_duplicates(keep=keep).reset_index(drop=True)
+                     df2_to_merge: pd.DataFrame, 
+                     target_col: str='Phase') -> pd.DataFrame:
 
-    # remove the target columns, as it pollutes the duplicates
-    target_column_df = merged_df[target_col]
-    merged_df = merged_df.drop(columns=target_col, axis=1)
+    column_list = df1.columns.to_list()
+    column_list.remove(target_col)
 
-    # list of True: dup, False: uniq
-    duplicates_list = merged_df.duplicated(keep='first')
-    duplicates_indxs_list = np.arange(len(target_column_df))[duplicates_list]
+    # create a dummy merger
+    merged = df1.merge(df2_to_merge, 
+                       on=column_list, 
+                       how='left', 
+                       suffixes=('', '_real'))
 
-    # add the target column back
-    merged_df[target_col] = target_column_df
+    # Replace the default values in df1 with the values from df2
+    merged[target_col] = merged[target_col+'_real'].combine_first(merged[target_col])
 
-    return merged_df.drop(index=duplicates_indxs_list).reset_index(drop=True)
+    # Drop the auxiliary column
+    merged.drop(columns=[target_col+'_real'], inplace=True)
+
+    merged[target_col] = merged[target_col].astype(int)
+
+    return merged
