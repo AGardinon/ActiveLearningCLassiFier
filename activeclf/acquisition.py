@@ -14,7 +14,7 @@ from typing import List
 
 
 class DecisionFunction:
-    def __init__(self, mode: str, seed: int=73, decimals: int=2) -> None:
+    def __init__(self, mode: str, seed: int=None, decimals: int=2) -> None:
         
         self.decision_modes = {
             'exploitation' : exploitation,
