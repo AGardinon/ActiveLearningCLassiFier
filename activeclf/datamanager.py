@@ -23,7 +23,7 @@ class DataLoader:
         self.y = None
         self.scaler = None
 
-        print("Loading DataFrame ...\n")
+        print(f"Loading DataFrame {self._file_path}\n")
         try:
             self.df = pd.read_csv(file_path).drop(labels='Unnamed: 0', axis=1)
         except:
@@ -101,26 +101,6 @@ def remove_columns(df: pd.DataFrame,
 
     return df
 
-
-# def dataframe_merger(df1: pd.DataFrame, 
-#                      df2: pd.DataFrame, 
-#                      target_col: str='Phase', 
-#                      keep: str='first') -> pd.DataFrame:
-#     # stack the two df
-#     merged_df = pd.concat([df1, df2]).drop_duplicates(keep=keep).reset_index(drop=True)
-
-#     # remove the target columns, as it pollutes the duplicates
-#     target_column_df = merged_df[target_col]
-#     merged_df = merged_df.drop(columns=target_col, axis=1)
-
-#     # list of True: dup, False: uniq
-#     duplicates_list = merged_df.duplicated(keep='first')
-#     duplicates_indxs_list = np.arange(len(target_column_df))[duplicates_list]
-
-#     # add the target column back
-#     merged_df[target_col] = target_column_df
-
-#     return merged_df.drop(index=duplicates_indxs_list).reset_index(drop=True)
 
 def dataframe_merger(df1: pd.DataFrame, 
                      df2_to_merge: pd.DataFrame, 
