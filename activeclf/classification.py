@@ -40,6 +40,9 @@ class ClassifierModel:
 
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame, idxs: List[int]) -> None:
+        # revert back to the original clf after using the SingleClassGaussianModel
+        if self.clf.__class__.__name__ == SingleClassGaussianModel.__name__:
+            self.clf = self.classification_models[self.model](**self.params)
 
         if idxs:
             try:
@@ -52,7 +55,6 @@ class ClassifierModel:
                 self.clf.fit(mean=X.iloc[idxs], cov='eye')
         else:
             self.clf.fit(X, y)
-        pass
     
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -71,10 +73,11 @@ class SingleClassGaussianModel:
         self.Z = None
         self.mean = None
         self.cov = None
-        pass
+
 
     def __repr__(self):
         return self.__class__.__name__
+    
 
     def fit(self, mean: List[np.ndarray], cov: str='eye') -> None:
         if isinstance(mean, pd.DataFrame):
@@ -86,7 +89,7 @@ class SingleClassGaussianModel:
         else:
             self.cov = cov
         self._is_fit = True
-        pass
+
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         if isinstance(X, pd.DataFrame):
