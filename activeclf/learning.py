@@ -40,16 +40,20 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
         pdf = MinMaxScaler().fit_transform(X=_pdf)
     except:
         pdf = MinMaxScaler().fit_transform(X=_pdf.reshape(-1,1))
+        # go back to shape(N,) to avoid problems
+        pdf = pdf.ravel()
 
     # check if we are using the custom made Gaussian model
     if clfModel.clf.__class__.__name__ == SingleClassGaussianModel.__name__:
         # we will treat the gaussian space as the inverted probability space
         # since we have only 1 class it will be used to infer the new points
-        dummy_entropy = np.around((1 - pdf), decimals=2)
+        dummy_entropy = np.around((1 - pdf), decimals=0)
         # appling an exploration strategy to sample new points
         _screen_points = np.argsort(dummy_entropy)[::-1][:new_batch]
         screen_points = np.concatenate([[i for i,val in enumerate(dummy_entropy) if val == dummy_entropy[h]] 
                                         for h in _screen_points])
+        # eliminate the duplicates
+        screen_points = list(set(screen_points))
         
     else:
         # acquire the new data points based on the acquisition strategy
