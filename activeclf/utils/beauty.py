@@ -42,11 +42,18 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
 
     print('classes:', n_classes)
     CMAPS = ['Reds', 'Blues', 'Greens', 'Purples', 'Oranges']
+    COLORS = ['red', 'blue', 'green', 'purple', 'orange']
 
     # Build the feature space PDF and Entropy
     Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-    Z = MinMaxScaler().fit_transform(X=Z)
-    H = np.round(scipy.stats.entropy(pk=Z, axis=1),2)
+    if n_classes > 1:
+        Z = MinMaxScaler().fit_transform(X=Z)
+        H = np.round(scipy.stats.entropy(pk=Z, axis=1), 2)
+    if n_classes == 1:
+        Z = MinMaxScaler().fit_transform(X=Z.reshape(-1, 1))
+        Z = Z.ravel()
+        H = np.round((1 - Z), 2)
+
     Z = Z.reshape((xx.shape[0], xx.shape[1], -1))
 
     # plots
@@ -55,8 +62,10 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     # class-wise PDFs
     for i in range(n_classes):
         # plot the initial data
+        y_indces = [k for k in idxs if y[k] == i]
         alphas = get_alphas(Z=Z[:,:,i])
-        ax[i].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
+        ax[i].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='1.', s=50, zorder=4)
+        ax[i].scatter(X0[y_indces], X1[y_indces], c=np.array(COLORS)[i], edgecolor='0.', s=50, zorder=4)
         surf = ax[i].imshow(Z[:,:,i], 
                             cmap=CMAPS[i], 
                             extent=(x_min, x_max, y_min, y_max), 
@@ -74,8 +83,8 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
         ax[i].set_yticks(())
 
     # class prediction plot
-    ax[n_classes].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
-    ax[n_classes].scatter(X0[idxs], X1[idxs], c=y[idxs], edgecolor='0.', s=50, zorder=4)
+    ax[n_classes].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='1.', s=50, zorder=4)
+    ax[n_classes].scatter(X0[idxs], X1[idxs], c=np.array(COLORS)[y[idxs].astype(int)], edgecolor='0.', s=50, zorder=4)
     for j in range(n_classes):
         alphas = get_alphas(Z=Z[:,:,j], scale=True)
         ax[n_classes].imshow(Z[:,:,j], 
@@ -92,13 +101,15 @@ def plot_active_learning_cycle(feature_space: Tuple[np.ndarray,np.ndarray,np.nda
     ax[n_classes].set_yticks(())
 
     # entropy plot
-    ax[n_classes+1].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='none', s=50, zorder=4)
+    ax[n_classes+1].scatter(X0[new_idxs], X1[new_idxs], edgecolor='0.', facecolor='1.', s=50, zorder=4)
     surf = ax[n_classes+1].imshow(H.reshape(xx.shape), 
-                           extent=(x_min, x_max, y_min, y_max),
-                           cmap='plasma', origin="lower", aspect='auto', alpha=1.)
+                                  extent=(x_min, x_max, y_min, y_max),
+                                  cmap='plasma', 
+                                  origin="lower", 
+                                  aspect='auto', alpha=1., zorder=1)
     cbar = fig.colorbar(surf,ax=ax[n_classes+1], format='%1.2f')
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
-                            levels=3, colors='0.', norm='linear', zorder=4)
+                            levels=3, colors='0.', norm='linear', zorder=2)
     ax[n_classes+1].set_title(f'entropy')
     ax[n_classes+1].set_xlabel('f0')
     ax[n_classes+1].set_ylabel('f1')
@@ -113,8 +124,9 @@ def plot_classification2D(data: np.ndarray,
                           clfModel: Callable,
                           points_ndx: List[int]=None) -> None:
     
-    # Buildi the complete feature space (visualization)
-    X0, X1 = data[feature_variable[0]], data[feature_variable[1]]
+    # Build the complete feature space (visualization)
+    xlabel, ylabel = feature_variable
+    X0, X1 = data[xlabel], data[ylabel]
     y = clfModel.clf.predict(data)
     incr = '5%'
     x_min, x_max = get_space_lims(coord=X0, incr=incr)
@@ -127,7 +139,10 @@ def plot_classification2D(data: np.ndarray,
 
     # Build the feature space PDF and Entropy
     Z = clfModel.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-    H = scipy.stats.entropy(pk=Z, axis=1)
+    if n_classes == 1:
+        H = scipy.stats.entropy(pk=Z, axis=0)
+    elif n_classes > 1:
+        H = scipy.stats.entropy(pk=Z, axis=1)
     Z = Z.reshape((xx.shape[0], xx.shape[1], -1))
 
     # plots
@@ -136,7 +151,7 @@ def plot_classification2D(data: np.ndarray,
     for i in range(n_classes):
         # plot the initial data
         alphas = get_alphas(Z=Z[:,:,i])
-        ax[i].scatter(X0, X1, c='0.', marker='.', s=25, alpha=.5, zorder=1)
+        ax[i].scatter(X0, X1, c='0.', marker='.', s=10, alpha=.5, zorder=1)
         if points_ndx:
             ax[i].scatter(X0.iloc[points_ndx], X1.iloc[points_ndx],
                           c=y[points_ndx], edgecolor='0.',
@@ -152,13 +167,12 @@ def plot_classification2D(data: np.ndarray,
         cs = ax[i].contour(xx, yy, Z[:,:,i]-.50001, 
                            colors='0.', levels=4, norm='linear', zorder=3)
         ax[i].set_title(f'pdf class-{i}')
-        ax[i].set_xlabel('f0')
-        ax[i].set_ylabel('f1')
+        ax[i].set_xlabel(xlabel)
+        ax[i].set_ylabel(ylabel)
         ax[i].set_xticks(())
         ax[i].set_yticks(())
 
-    # ax[n_classes].scatter(X0, X1, c='0.', marker='.', s=25, zorder=4)
-    ax[n_classes].scatter(X0, X1, c='0.', marker='.', s=25, alpha=.5, zorder=1)
+    ax[n_classes].scatter(X0, X1, c='0.', marker='.', s=10, alpha=.5, zorder=1)
     if points_ndx:
         ax[n_classes].scatter(X0.iloc[points_ndx], X1.iloc[points_ndx],
                               c=y[points_ndx], edgecolor='0.',
@@ -173,12 +187,12 @@ def plot_classification2D(data: np.ndarray,
                              aspect='auto', 
                              alpha=alphas.reshape(xx.shape))
     ax[n_classes].set_title(f'cls prediction')
-    ax[n_classes].set_xlabel('f0')
-    ax[n_classes].set_ylabel('f1')
+    ax[n_classes].set_xlabel(xlabel)
+    ax[n_classes].set_ylabel(ylabel)
     ax[n_classes].set_xticks(())
     ax[n_classes].set_yticks(())
 
-    ax[n_classes+1].scatter(X0, X1, c='0.', marker='.', s=25, alpha=.5, zorder=1)
+    ax[n_classes+1].scatter(X0, X1, c='0.', marker='.', s=10, alpha=.5, zorder=1)
     if points_ndx:
         ax[n_classes+1].scatter(X0.iloc[points_ndx], X1.iloc[points_ndx],
                                 c=y[points_ndx], edgecolor='0.',
@@ -190,12 +204,14 @@ def plot_classification2D(data: np.ndarray,
     ax[n_classes+1].contour(xx, yy, H.reshape(xx.shape), 
                             levels=3, colors='0.', norm='linear', zorder=4)
     ax[n_classes+1].set_title(f'entropy')
-    ax[n_classes+1].set_xlabel('f0')
-    ax[n_classes+1].set_ylabel('f1')
+    ax[n_classes+1].set_xlabel(xlabel)
+    ax[n_classes+1].set_ylabel(ylabel)
     ax[n_classes+1].set_xticks(())
     ax[n_classes+1].set_yticks(())
 
     fig.tight_layout()
+
+    return fig, ax
 
 
 def plot_simple_al_output(X: Tuple[np.ndarray, np.ndarray], 
@@ -416,11 +432,11 @@ def plot_arrow_path(x,y, ax):
 
 # --- PLOT UTILITIES ---#
 
-def get_alphas(Z: np.ndarray, scale: bool=False) -> np.ndarray:
+def get_alphas(Z: np.ndarray, scale: bool=False, treshold: float=.50001) -> np.ndarray:
     alphas = (Z.ravel() - Z.ravel().min()) / (Z.ravel().max() - Z.ravel().min())
     if scale:
         for i,av in enumerate(alphas):
-            if av <= .50001:
+            if av <= treshold:
                 alphas[i] = 0.
             else:
                 pass
