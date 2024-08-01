@@ -44,6 +44,7 @@ class DataLoader:
         elif len(self._constant_columns) == 0:
             pass
 
+
     def merge_validated_df(self, validated_df: pd.DataFrame, target: str, overwrite: bool=False):
         assert self.scaler is None, f'Warning, you should merge before creating the `feature_space`!'
         self.df = dataframe_merger(df1=self.df, 
@@ -53,24 +54,31 @@ class DataLoader:
             self.df.to_csv(self._file_path, index=False)
             print(f'Dataset updated, ow to {self._file_path}')
 
+
     def feature_space(self, scaling: bool=True):
-        # target definition
-        self.y = self.df[self.target]
+        if self.scaler is None:
+            # target definition
+            self.y = self.df[self.target]
 
-        # creating the feature space
-        self.X = self.df.drop(columns=self.target)
-        # feature space labels keys
-        self.fspace_keys = [k for k in self.df.columns if k != self.target]
+            # creating the feature space
+            self.X = self.df.drop(columns=self.target)
+            # feature space labels keys
+            self.fspace_keys = [k for k in self.df.columns if k != self.target]
 
-        print(f'Feature space: {self.fspace_keys},\nTarget property: {self.target}')
+            print(f'Feature space: {self.fspace_keys},\nTarget property: {self.target}')
 
-        if scaling:
-            print('Scaling the data (StandarScaler) ...')
-            self.scaler = StandardScaler()
-            self.X = self.scaler.fit_transform(X=self.X)
-            self.X = pd.DataFrame(data=self.X, columns=self.fspace_keys)
+            if scaling:
+                print('Scaling the data (StandarScaler) ...')
+                self.scaler = StandardScaler()
+                self.X = self.scaler.fit_transform(X=self.X)
+                self.X = pd.DataFrame(data=self.X, columns=self.fspace_keys)
+            else:
+                print('!!! The data might not be scaled ...')
         else:
-            print('!!! The data might not be scaled ...')
+            print('Feature space already created.')
+            print(f'Feature space: {self.fspace_keys},\nTarget property: {self.target}')
+            print(f'Scaler used: {self.scaler}')
+            
 
 # -------------------------------------------------- #
 
