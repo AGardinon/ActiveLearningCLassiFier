@@ -10,7 +10,7 @@
 
 import scipy
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 
 class DecisionFunction:
@@ -78,7 +78,7 @@ from typing import Union
 
 
 class pointSampler:
-    def __init__(self, mode: str, seed: int=None) -> None:
+    def __init__(self, mode: str) -> None:
         
         self.sampling_modes = {
             'random' : sampling_rand,
@@ -90,20 +90,25 @@ class pointSampler:
         
         self.mode = mode
 
-    def sample(self, X: Union[List[int], np.ndarray], n: int, **kwrgs) -> List[int]:
+    def sample(self, X: np.ndarray, n: int, **kwrgs) -> List[int]:
         
         return self.sampling_modes[self.mode](X=X, n=n, **kwrgs)
 
     
-def sampling_rand(X: List[int], n: int, seed: int=73) -> List[int]:
+def sampling_rand(X: np.ndarray, n: int) -> List[int]:
+
+    if isinstance(X, pd.DataFrame):
+        X = np.array(X)
 
     rng_idx_pick = random.sample(range(0, len(X)), n)
     
     return rng_idx_pick
 
 
-def sampling_fps(X: np.ndarray, n: int, start_idx: int=None, 
-                return_distD: bool=False) -> Union[List[int], np.ndarray]:
+def sampling_fps(X: np.ndarray, 
+                 n: int, 
+                 start_idx: int=None, 
+                 return_distD: bool=False) -> Union[List[int], Tuple[List[int],np.ndarray]]:
 
     if isinstance(X, pd.DataFrame):
         X = np.array(X)
