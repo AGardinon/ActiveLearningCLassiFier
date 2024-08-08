@@ -19,9 +19,9 @@ from .classification import SingleClassGaussianModel
 def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray], 
                           idxs: List[int], 
                           new_batch: int, 
-                          clfModel: Callable, 
-                          acquisitionFunc: Callable,
-                          screeningSelection: str='FPS') -> Union[List[int], np.ndarray]:
+                          clf_func: Callable, 
+                          acquisition_func: Callable,
+                          sampling_mode: str='FPS') -> Union[List[int], np.ndarray]:
     
     # Extract the frature space into variables (X) and taget (y)
     X, y = feature_space
@@ -31,9 +31,9 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     unknown_idxs = [i for i in range(len(X)) if i not in idxs]
 
     # fit the clf model to the existing feature space
-    clfModel.fit(X=X, y=y, idxs=idxs)
+    clf_func.fit(X=X, y=y, idxs=idxs)
     # -> estimation of the pdf for the data
-    _pdf = clfModel.predict_proba(X=X)
+    _pdf = clf_func.predict_proba(X=X)
     # -> minmax scaling for easier value picking
     #    less noisy probability space (and entropy)
     try:
@@ -44,7 +44,7 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
         pdf = pdf.ravel()
 
     # check if we are using the custom made Gaussian model
-    if clfModel.clf.__class__.__name__ == SingleClassGaussianModel.__name__:
+    if clf_func.clf.__class__.__name__ == SingleClassGaussianModel.__name__:
         # we will treat the gaussian space as the inverted probability space
         # since we have only 1 class it will be used to infer the new points
         dummy_entropy = np.around((1 - pdf), decimals=0)
@@ -58,10 +58,10 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     else:
         # acquire the new data points based on the acquisition strategy
         # -> the pdf fed refers only at the unknown idxs
-        if acquisitionFunc.mode == 'random':
-            screen_points = acquisitionFunc.acquire(idxs=unknown_idxs, n=new_batch)
+        if acquisition_func.mode == 'random':
+            screen_points = acquisition_func.acquire(idxs=unknown_idxs, n=new_batch)
         else:
-            _screen_points = acquisitionFunc.acquire(pdf=pdf[unknown_idxs], n=new_batch)
+            _screen_points = acquisition_func.acquire(pdf=pdf[unknown_idxs], n=new_batch)
         # -> restore indexes to the POOL dataframe
             screen_points = [unknown_idxs[sc] for sc in _screen_points]
 
@@ -69,19 +69,19 @@ def active_learning_cycle(feature_space: Tuple[pd.DataFrame, np.ndarray],
     #    using some rule.
     #    If many points shares similar Entropy they will be picked
     #    resulting in more than `new_batch` amount.
-    if len(screen_points) > new_batch and screeningSelection is not None:
+    if len(screen_points) > new_batch and sampling_mode is not None:
         print(f"Found {len(screen_points)} points that shares the same acquisition criteria.")
-        print(f"Selecting {new_batch} by '{screeningSelection}' sampling.")
+        print(f"Selecting {new_batch} by '{sampling_mode}' sampling.")
         # exception for non-distance based selection (e.g., random)
         # where X is the just the indexes of the points
-        if screeningSelection == 'random':
-            sampled_points = pointSampler(mode=screeningSelection).sample(X=screen_points, 
+        if sampling_mode == 'random':
+            sampled_points = pointSampler(mode=sampling_mode).sample(X=screen_points, 
                                                                           n=new_batch, 
                                                                           seed=None)
         # if the sampling is distance based X are the real points of the POOL dataframe
         # `.iloc[list[int]]` preserve the `list[int]` ordering!
         else:
-            sampled_points = pointSampler(mode=screeningSelection).sample(X=X.iloc[screen_points], 
+            sampled_points = pointSampler(mode=sampling_mode).sample(X=X.iloc[screen_points], 
                                                                           n=new_batch)
         new_points = [screen_points[sp] for sp in sampled_points]
 
